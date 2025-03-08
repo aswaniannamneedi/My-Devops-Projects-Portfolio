@@ -1,0 +1,28 @@
+node
+{
+    def mavenHome=tool name: “maven”
+    stage(‘git clone’)
+     {
+      git branch: 'development', credentialsId: 'xxxxxxxxxxxxx', url: 'https://github.com/xxxxxxxxxxx/maven-web-app-project-kk-funda.git'
+     }
+     stage(‘build’)
+     {
+     sh “${ mavenHome}/bin/mvn clean package”
+      }
+      stage(‘SQ report’)
+     {
+     sh “${ mavenHome}/bin/mvn sonar:sonar”
+      }
+      stage(‘deploy into nexus’)
+      {
+      Sh “$(mavenHome}/bin/mvn  clean deploy”
+      }
+      stage('deploy into tomcat') {      
+    echo 'Deploying .war file using curl'
+    sh """ 
+        curl -v -u aswini:aswini \
+        --upload-file "/var/lib/jenkins/workspace/scripting pipeline example1/target/maven-web-application.war" \
+        "http://13.250.44.77:8080/manager/text/deploy?path=/maven-web-application&update=true"
+    """
+    }
+}
